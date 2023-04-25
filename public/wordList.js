@@ -8901,7 +8901,7 @@ const wordList = ['aaron',
 ]
 
 function returnWord() {
-    let arrayLength = wordList.length;
+    let arrayLength = Object.keys(wordList).length;
 
     let randomWord = Math.floor(Math.random() * arryaLength);
 
