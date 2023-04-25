@@ -16,13 +16,11 @@ function App() {
     <div className="App">
       <h1>Hangman</h1>
 
-      {!isPlaying &&
-        <div>
+      {!isPlaying ? <div>
           <h2>Click button to play hangman</h2>
           <button onClick={startGame}>Start Game</button>
-        </div>}
-      
-      {isPlaying &&
+        </div>
+        :
         <div>
           <h2>(Game of hangman)</h2>
           <button onClick={endGame}>game over button</button>
