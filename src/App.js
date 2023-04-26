@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Box, TextField, Button } from '@mui/material';
 
@@ -13,9 +13,24 @@ function App() {
   const [wrongGuess, setWrongGuess] = useState('');
 
   const [currentGuess, setcurrentGuess] = useState('');
+  const [lives, setLives] = useState(6);
+  const [hangmanImage, setHangmanImage] = useState('../images/hangman_life_6.jpeg');
 
+  const [endGameMessage, setEndGameMessage] = useState(null);
+
+  useEffect(() => {
+    if (lives < 1) {
+      endGame();
+    }
+  }, [lives]);
+  
   const startGame = () => {
     setIsPlaying(true);
+    setLives(6);
+    setWrongGuess('');
+    setCorrectGuess('');
+    setHangmanImage('../images/hangman_life_6.jpeg');
+    setEndGameMessage(null);
 
     let word = "bug";
 
@@ -30,6 +45,13 @@ function App() {
 
   const endGame = () => {
     setIsPlaying(false);
+    setWordPhrase('');
+
+    if (lives > 1) {
+      setEndGameMessage("You've won!")
+    } else {
+      setEndGameMessage("You've been hanged...")
+    }
   }
 
   const handleGuessInput = e => {
@@ -38,22 +60,25 @@ function App() {
       setCorrectGuess(correctGuess + upperCaseGuess);
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
+      setLives(prevState => prevState - 1);
+      setHangmanImage(`../images/hangman_life_${lives-1}.jpeg`)
     }
+
     setcurrentGuess('');
   }
 
   return (
     <div className="App">
       <h1>Hangman</h1>
-
+      {endGameMessage && <div>{endGameMessage}</div>}
+      <img src={hangmanImage} width="200"></img>
       {!isPlaying ? <div>
         <h2>Click button to play hangman</h2>
         <button onClick={startGame}>Start Game</button>
       </div>
         :
         <div>
-          <h2>(Game of hangman)</h2>
-          <button onClick={endGame}>game over button</button>
+          
         </div>}
 
       {isPlaying && (
