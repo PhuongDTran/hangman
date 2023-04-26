@@ -4,6 +4,8 @@ import { Box, TextField, Button } from '@mui/material';
 
 import './App.css';
 
+import {returnWord} from './wordList.js'
+
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [wordPhrase, setWordPhrase] = useState('');
@@ -14,8 +16,16 @@ function App() {
 
   const startGame = () => {
     setIsPlaying(true);
-    // TODO: randomize a phrase, all upper case
-    setWordPhrase("HELLO WORLD");
+
+    let word = "bug";
+
+    if(sessionStorage.getItem("word")){
+      word = sessionStorage.getItem('word').toUpperCase();
+    } else {
+      word = returnWord().toLocaleUpperCase();
+      console.log(word); //Logs the word to the console for testing. Remove before going life, as useful for cheating.
+    }
+    setWordPhrase(word);
   }
 
   const endGame = () => {
