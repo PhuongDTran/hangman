@@ -18,11 +18,22 @@ function App() {
 
   const [endGameMessage, setEndGameMessage] = useState(null);
 
+  //figures out if user has lost game
   useEffect(() => {
     if (lives < 1) {
       endGame();
     }
   }, [lives]);
+
+  //figures out if user has won game
+  useEffect(() => {
+    let Won = true;
+    wordPhrase.split('').forEach((char) => {
+      if (!(correctGuess + " ").includes(char)) { Won = false }
+    }
+    )
+    if (Won) {endGame()}
+  });
   
   const startGame = () => {
     setIsPlaying(true);
