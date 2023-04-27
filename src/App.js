@@ -14,22 +14,33 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
-  const [hangmanImage, setHangmanImage] = useState('../images/hangman_life_6.jpeg');
+  const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
 
   const [endGameMessage, setEndGameMessage] = useState(null);
 
+  //figures out if user has lost game
   useEffect(() => {
     if (lives < 1) {
       endGame();
     }
   }, [lives]);
+
+  //figures out if user has won game
+  useEffect(() => {
+    let Won = true;
+    wordPhrase.split('').forEach((char) => {
+      if (!(correctGuess + " ").includes(char)) { Won = false }
+    }
+    )
+    if (Won) {endGame()}
+  });
   
   const startGame = () => {
     setIsPlaying(true);
     setLives(6);
     setWrongGuess('');
     setCorrectGuess('');
-    setHangmanImage('../images/hangman_life_6.jpeg');
+    setHangmanImage(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
     setEndGameMessage(null);
 
     let word = "bug";
@@ -61,7 +72,7 @@ function App() {
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
-      setHangmanImage(`../images/hangman_life_${lives-1}.jpeg`)
+      setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives-1}.jpeg`)
     }
 
     setcurrentGuess('');

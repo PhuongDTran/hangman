@@ -1,3 +1,11 @@
+export function returnWord() {
+    let arrayLength = Object.keys(wordList).length;
+
+    let randomWord = Math.floor(Math.random() * arrayLength);
+
+    return (wordList[randomWord]);
+}
+
 const wordList = ['aaron',
     'abandoned',
     'aberdeen',
@@ -8900,10 +8908,3 @@ const wordList = ['aaron',
     'zshops'
 ]
 
-export function returnWord() {
-    let arrayLength = Object.keys(wordList).length;
-
-    let randomWord = Math.floor(Math.random() * arrayLength);
-
-    return (wordList[randomWord]);
-}
