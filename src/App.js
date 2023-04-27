@@ -16,7 +16,7 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
-  const [points, setPoints] = useState(100);
+  const [points, setPoints] = useState(0);
   const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
 
   const [hasWon, setHasWon] = useState(false);
@@ -97,12 +97,12 @@ function App() {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (wordPhrase.includes(upperCaseGuess)) {
       setCorrectGuess(correctGuess + upperCaseGuess);
-      setPoints(prevState => prevState + (prevState / wordPhrase.length));
+      setPoints(prevState => prevState + (wordPhrase.length * Math.random() * 10));
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
       setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
-      setPoints(prevState => prevState - (prevState / wordPhrase.length));
+      setPoints(prevState => prevState - (wordPhrase.length * Math.random() * 10));
     }
 
     setcurrentGuess('');
