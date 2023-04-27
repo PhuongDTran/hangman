@@ -14,6 +14,7 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
+  const [points, setPoints] = useState(100);
   const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
 
   const [endGameMessage, setEndGameMessage] = useState(null);
@@ -37,6 +38,7 @@ function App() {
   
   const startGame = () => {
     setIsPlaying(true);
+    setPoints(100);
     setLives(6);
     setWrongGuess('');
     setCorrectGuess('');
@@ -69,19 +71,27 @@ function App() {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (wordPhrase.includes(upperCaseGuess)) {
       setCorrectGuess(correctGuess + upperCaseGuess);
+      setPoints(prevState => prevState + (prevState/wordPhrase.length));
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
       setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives-1}.jpeg`)
+      setPoints(prevState => prevState - (prevState/wordPhrase.length));
     }
 
     setcurrentGuess('');
   }
 
+  console.log(points);
+  console.log(correctGuess, wrongGuess);
   return (
     <div className="App">
       <h1>Hangman</h1>
-      {endGameMessage && <div>{endGameMessage}</div>}
+      {endGameMessage && 
+      <div>
+        {endGameMessage}
+        <div>You've earned {Math.floor(points)} points</div>
+      </div>}
       <img src={hangmanImage} width="200"></img>
       {!isPlaying ? <div>
         <h2>Click button to play hangman</h2>
