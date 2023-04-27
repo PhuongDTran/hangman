@@ -4,7 +4,9 @@ import { Box, TextField, Button } from '@mui/material';
 
 import './App.css';
 
-import {returnWord} from './wordList.js'
+import { returnWord } from './wordList.js'
+
+import { addPlayer, deletePlayer, updatePlayerHighestScore, getAllPlayers } from './playerDal';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -14,9 +16,29 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
+  const [points, setPoints] = useState(100);
   const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
 
+  const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
+
+  const [username, setUsername] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  //Sets leaderboard
+  useEffect(() => {
+    getAllPlayers(function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+      setLeaderboard(() => {
+        let items = data.Items;
+        items.sort((a,b) => (a.highestScore < b.highestScore) ? 1 : ((b.highestScore < a.highestScore) ? -1 : 0));
+        return items;
+      });
+    })
+
+  }, [])
 
   //figures out if user has lost game
   useEffect(() => {
@@ -32,11 +54,16 @@ function App() {
       if (!(correctGuess + " ").includes(char)) { Won = false }
     }
     )
-    if (Won) {endGame()}
+    if (Won) {
+      endGame();
+      setHasWon(true);
+    }
   });
-  
+
   const startGame = () => {
+    setHasWon(false);
     setIsPlaying(true);
+    setPoints(100);
     setLives(6);
     setWrongGuess('');
     setCorrectGuess('');
@@ -45,7 +72,7 @@ function App() {
 
     let word = "bug";
 
-    if(sessionStorage.getItem("word")){
+    if (sessionStorage.getItem("word")) {
       word = sessionStorage.getItem('word').toUpperCase();
     } else {
       word = returnWord().toLocaleUpperCase();
@@ -69,66 +96,135 @@ function App() {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (wordPhrase.includes(upperCaseGuess)) {
       setCorrectGuess(correctGuess + upperCaseGuess);
+      setPoints(prevState => prevState + (prevState / wordPhrase.length));
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
-      setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives-1}.jpeg`)
+      setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
+      setPoints(prevState => prevState - (prevState / wordPhrase.length));
     }
 
     setcurrentGuess('');
   }
 
-  return (
-    <div className="App">
-      <h1>Hangman</h1>
-      {endGameMessage && <div>{endGameMessage}</div>}
-      <img src={hangmanImage} width="200"></img>
-      {!isPlaying ? <div>
-        <h2>Click button to play hangman</h2>
-        <button onClick={startGame}>Start Game</button>
-      </div>
-        :
-        <div>
-          
-        </div>}
+  const submitScore = () => {
+    const newPlayer = {
+      playerName: username,
+      highestScore: points
+    }
 
-      {isPlaying && (
-        <Box sx={{ width: '200px', display: 'flex', flexDirection: 'column' }}>
-          <label> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
-          <TextField id="outlined-basic" label="Your Guess" variant="outlined" value={currentGuess} onChange={e => setcurrentGuess(e.target.value)} inputProps={{ maxLength: 1 }} />
-          <Button variant="outlined" onClick={handleGuessInput}>Make a guess</Button>
-        </Box>
-      )}
+    let updatedLeaderboard = [...leaderboard];
+    //if leaderboard is less than 10, add a new player
+    //if player's name exists on leaderboard and player's score is higher than previous, update
+    //if player score is highest than lowest score on the leaderboard, add to DB
+    if (leaderboard.length < 10) {
+      addPlayer(newPlayer, function (err, data) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data, 'added');
+      })
 
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        {
-          wordPhrase && wordPhrase.split("").map((char, idx) => {
-            if (char === ' ') {
-              return (
-                <Box key={idx} sx={{
+      updatedLeaderboard.push(newPlayer);
+    } else if (leaderboard.find(player => player.playerName === newPlayer.playerName && newPlayer.highestScore > player.highestScore)) {
+      updatePlayerHighestScore(newPlayer.playerName, newPlayer.highestScore, function(err, data) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data);
+      })
+      const replacePlayerIndex = updatedLeaderboard.findIndex(player => player.playerName === newPlayer.playerName)
+      updatedLeaderboard[replacePlayerIndex] = newPlayer;
+
+    } else if (newPlayer.highestScore > leaderboard[9].highestScore) {
+      addPlayer(newPlayer, function (err, data) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data, 'added');
+      })
+
+      deletePlayer(leaderboard[9].playerName, function (err, data) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data, 'deleted');
+      })
+
+      updatedLeaderboard = updatedLeaderboard.filter(player => player.playerName !== leaderboard[9].playerName);
+      updatedLeaderboard.push(newPlayer);
+    }
+    setLeaderboard(() => {
+      return updatedLeaderboard.sort((a,b) => (a.highestScore < b.highestScore) ? 1 : ((b.highestScore < a.highestScore) ? -1 : 0))
+    });
+}
+
+const leaderboardElements = leaderboard.map(item => {
+  return <div>
+    {item.playerName}: {Math.floor(item.highestScore)}
+  </div>
+})
+
+return (
+  <div className="App">
+    <h1>Hangman</h1>
+    <h2>Leaderboard</h2>
+    {leaderboardElements}
+    {endGameMessage &&
+      <div>
+        {endGameMessage}
+        <div>You've earned {Math.floor(points)} points</div>
+      </div>}
+    <img src={hangmanImage} width="200"></img>
+    {!isPlaying && <div>
+      <h2>Click button to play hangman</h2>
+      <button onClick={startGame}>Start Game</button>
+    </div>}
+
+    {hasWon &&
+      <div>
+        <h2>Submit score to leaderboard</h2>
+        <TextField id="outlined-basic" label="Username" variant="outlined" onChange={e => setUsername(e.target.value)} />
+        <Button variant="outlined" onClick={submitScore}>Submit</Button>
+      </div>}
+
+    {isPlaying && (
+      <Box sx={{ width: '200px', display: 'flex', flexDirection: 'column' }}>
+        <label> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
+        <TextField id="outlined-basic" label="Your Guess" variant="outlined" value={currentGuess} onChange={e => setcurrentGuess(e.target.value)} inputProps={{ maxLength: 1 }} />
+        <Button variant="outlined" onClick={handleGuessInput}>Make a guess</Button>
+      </Box>
+    )}
+
+    <div style={{ display: "flex", flexDirection: "row" }}>
+      {
+        wordPhrase && wordPhrase.split("").map((char, idx) => {
+          if (char === ' ') {
+            return (
+              <Box key={idx} sx={{
+                width: 40,
+                height: 40,
+              }} />)
+          } else {
+            return (
+              <Box
+                key={idx}
+                sx={{
                   width: 40,
                   height: 40,
-                }} />)
-            } else {
-              return (
-                <Box
-                  key={idx}
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    backgroundColor: 'primary.dark',
-                    m: 0.2,
-                    textAlign: 'center',
-                    justify: 'center'
-                  }}>
-                  <label>{correctGuess.includes(char) ? char : ''}</label>
-                </Box>)
-            }
-          })
-        }
-      </div>
+                  backgroundColor: 'primary.dark',
+                  m: 0.2,
+                  textAlign: 'center',
+                  justify: 'center'
+                }}>
+                <label>{correctGuess.includes(char) ? char : ''}</label>
+              </Box>)
+          }
+        })
+      }
     </div>
-  );
+  </div>
+);
 }
 
 export default App;
