@@ -1,7 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 
-import * as dbClient from './dynamodbClient';
+import * as dbClient from './src/dynamodbClient';
 
 const GAME_TABLE_NAME = 'hangman-game'
 
