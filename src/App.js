@@ -113,6 +113,7 @@ function App() {
       highestScore: points
     }
 
+    let updatedLeaderboard = [...leaderboard];
     //if leaderboard is less than 10, add a new player
     //if player's name exists on leaderboard and player's score is higher than previous, update
     //if player score is highest than lowest score on the leaderboard, add to DB
@@ -123,6 +124,8 @@ function App() {
         }
         console.log(data, 'added');
       })
+
+      updatedLeaderboard.push(newPlayer);
     } else if (leaderboard.find(player => player.playerName === newPlayer.playerName && newPlayer.highestScore > player.highestScore)) {
       updatePlayerHighestScore(newPlayer.playerName, newPlayer.highestScore, function(err, data) {
         if (err) {
@@ -130,6 +133,9 @@ function App() {
         }
         console.log(data);
       })
+      const replacePlayerIndex = updatedLeaderboard.findIndex(player => player.playerName === newPlayer.playerName)
+      updatedLeaderboard[replacePlayerIndex] = newPlayer;
+
     } else if (newPlayer.highestScore > leaderboard[9].highestScore) {
       addPlayer(newPlayer, function (err, data) {
         if (err) {
@@ -144,12 +150,18 @@ function App() {
         }
         console.log(data, 'deleted');
       })
+
+      updatedLeaderboard = updatedLeaderboard.filter(player => player.playerName !== leaderboard[9].playerName);
+      updatedLeaderboard.push(newPlayer);
     }
+    setLeaderboard(() => {
+      return updatedLeaderboard.sort((a,b) => (a.highestScore < b.highestScore) ? 1 : ((b.highestScore < a.highestScore) ? -1 : 0))
+    });
 }
 
 const leaderboardElements = leaderboard.map(item => {
   return <div>
-    {item.playerName}: {item.highestScore}
+    {item.playerName}: {Math.floor(item.highestScore)}
   </div>
 })
 
