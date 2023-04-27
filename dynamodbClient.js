@@ -40,3 +40,9 @@ export const queryItems = (params, callback) => {
     callback(err, data);
   });
 }
+
+export const scanItems = (params, callback) => {
+  return docClient.scan(params, function (err, data) {
+    callback(err, data);
+  });
+}
