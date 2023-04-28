@@ -31,7 +31,7 @@ function App() {
     //console.log(window.location.pathname);
     passcode = window.location.pathname.toString().substring(1);
   } else {
-    passcode = "none";
+    passcode = null;
   }
   let url = "";
   let sessionWord = "";
@@ -50,22 +50,7 @@ function App() {
       });
     })
 
-  }, [])
-
-  useEffect(() => {
-    console.log(passcode)
-    getWordUrl(passcode, function (err, data) {
-      if (err) {
-        console.log(err);
-      }
-
-      if (data.Item) {
-        sessionWord = data.Item.wordshared;
-      }
-    }
-    );
-  }, [])
-  
+  }, []);  
 
   //figures out if user has lost game
   useEffect(() => {
@@ -85,7 +70,26 @@ function App() {
       endGame();
       setHasWon(true);
     }
-  });
+  }, [correctGuess]);
+
+  function checkUrl () {
+    console.log(passcode)
+    getWordUrl(passcode, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+
+      if (data.Item) {
+        sessionWord = data.Item.wordshared;
+        console.log(sessionWord);
+      }
+    }
+    );
+  }
+
+  if(passcode !== null){
+    checkUrl();
+  }
 
   const startGame = () => {
     setHasWon(false);
@@ -98,6 +102,10 @@ function App() {
     setEndGameMessage(null);
 
     let word = "bug";
+
+    console.log(sessionWord);
+
+    console.log(sessionWord + " " + sessionWord.length);
 
     if (sessionWord.length > 0) {
       word = sessionWord.toUpperCase();
