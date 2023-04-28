@@ -285,20 +285,34 @@ function App() {
   };
 
 
-  const leaderboardElements = leaderboard.map((item, index) => {
-    return (
-      <div>
-        {index + 1}. {item.playerName}: {Math.floor(item.highestScore)}
-      </div>
-    );
-  });
+  const leaderboardTable = (
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player Name</th>
+          <th>Highest Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {leaderboard.map((item, index) => (
+          <tr key={index}>
+            <td>{index + 1}</td>
+            <td>{item.playerName}</td>
+            <td>{Math.floor(item.highestScore)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+  
 
   return (
     <div className="App">
       <h1>Hangman</h1>
       <div className="leader-board">
         <h2>Leaderboard</h2>
-        {leaderboardElements}
+        {leaderboardTable}
         {endGameMessage && (
           <div className="end-game-message">
             {endGameMessage}
@@ -349,6 +363,9 @@ function App() {
             value={currentGuess}
             onChange={(e) => setcurrentGuess(e.target.value)}
             inputProps={{ maxLength: 1 }}
+            style={{
+              marginBottom: "10px",
+            }}
           />
           <Button
             variant="outlined"

@@ -102,8 +102,8 @@
 
 .leader-board {
     position: fixed;
-    top: 10rem;
-    right: 12rem;
+    top: 9rem;
+    left: 5rem;
 }
 
 .leader-board h2 {
@@ -114,13 +114,31 @@
     font-family: "Monaco", monospace;
 }
 
-.leaderboard-item {
-    background-color: #f1f1f1;
-    border: 1px solid #ddd;
-    padding: 10px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-  }
+/* CSS code */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #ddd;
+}
+
   
  
 .SendWord {
