@@ -23,13 +23,12 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState("");
   const [lives, setLives] = useState(6);
-  
-   const [gameErrorMessage, setGameErrorMessage] = useState(null);
+
+  const [gameErrorMessage, setGameErrorMessage] = useState(null);
   const [points, setPoints] = useState(0);
   const [hangmanImage, setHangmanImage] = useState(
     window.location.origin + "/images/hangman_life_6.jpeg"
   );
-
 
   const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
@@ -155,17 +154,22 @@ function App() {
 
   const handleGuessInput = (e) => {
     const upperCaseGuess = currentGuess.toUpperCase();
-    if (correctGuess.includes(upperCaseGuess) || wrongGuess.includes(upperCaseGuess)) {
+    if (
+      correctGuess.includes(upperCaseGuess) ||
+      wrongGuess.includes(upperCaseGuess)
+    ) {
       setGameErrorMessage("You've inputted this letter already!");
     } else {
       if (wordPhrase.includes(upperCaseGuess)) {
         setCorrectGuess(correctGuess + upperCaseGuess);
-        setPoints(prevState => prevState + (prevState / wordPhrase.length));
+        setPoints((prevState) => prevState + prevState / wordPhrase.length);
       } else {
         setWrongGuess(wrongGuess + upperCaseGuess);
-        setLives(prevState => prevState - 1);
-        setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
-        setPoints(prevState => prevState - (prevState / wordPhrase.length));
+        setLives((prevState) => prevState - 1);
+        setHangmanImage(
+          process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`
+        );
+        setPoints((prevState) => prevState - prevState / wordPhrase.length);
       }
       setGameErrorMessage(null);
     }
@@ -306,28 +310,22 @@ function App() {
     </table>
   );
 
-return (
-  <div className="App">
-    <h1>Hangman</h1>
-    <h2>Leaderboard</h2>
-    {leaderboardTable}
-    {endGameMessage &&
-      <div className="end-game-message">
-        {endGameMessage}
-        <div>You've earned {Math.floor(points)} points</div>
-      </div>}
-    <img src={hangmanImage} width="200"></img>
-    {gameErrorMessage && <div>{gameErrorMessage}</div>}
-    {!isPlaying && <div>
-      <h2>Click button to play hangman</h2>
-      <button onClick={startGame}>Start Game</button>
-    </div>}
-
-    {hasWon &&
-      <div>
-        <h2>Submit score to leaderboard</h2>
-        {!hasSubmitted ?
-
+  return (
+    <div className="App">
+      <h1>Hangman</h1>
+      <div className="leader-board">
+        <h2>Leaderboard</h2>
+        {leaderboardTable}
+        {endGameMessage && (
+          <div className="end-game-message">
+            {endGameMessage}
+            <div>You've earned {Math.floor(points)} points</div>
+          </div>
+        )}
+      </div>
+      <img src={hangmanImage} width="200"></img>
+      {gameErrorMessage && <div>{gameErrorMessage}</div>}
+      {!isPlaying && (
         <div>
           <h2>Click button to play hangman</h2>
           <button onClick={startGame}>Start Game</button>
