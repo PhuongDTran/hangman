@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { Box, TextField, Button } from '@mui/material';
+import { Box, TextField, Button } from "@mui/material";
 
-import './App.css';
+import "./App.css";
 
 import { returnWord } from './wordList.js'
 
@@ -12,16 +12,16 @@ import { addWord,getWord, getWordUrl, deleteWord } from './wordDal';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [wordPhrase, setWordPhrase] = useState('');
-  const [correctGuess, setCorrectGuess] = useState('');
-  const [wrongGuess, setWrongGuess] = useState('');
+  const [wordPhrase, setWordPhrase] = useState("");
+  const [correctGuess, setCorrectGuess] = useState("");
+  const [wrongGuess, setWrongGuess] = useState("");
 
-  const [currentGuess, setcurrentGuess] = useState('');
+  const [currentGuess, setcurrentGuess] = useState("");
   const [lives, setLives] = useState(6);
-  
+
   const [points, setPoints] = useState(0);
   const [hangmanImage, setHangmanImage] = useState(window.location.origin + '/images/hangman_life_6.jpeg');
-  
+
   const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
 
@@ -116,20 +116,28 @@ function App() {
       word = returnWord().toLocaleUpperCase();
     }
     setWordPhrase(word);
-  }
+  };
 
   const endGame = () => {
     setIsPlaying(false);
-    setWordPhrase('');
+    setWordPhrase("");
 
+    let win = false;
     if (lives > 1) {
-      setEndGameMessage("You've won!")
+      setEndGameMessage("You've won!");
+      win = true;
     } else {
-      setEndGameMessage("You've been hanged...")
+      setEndGameMessage("You've been hanged...");
     }
-  }
 
-  const handleGuessInput = e => {
+    const message = document.querySelector(".end-game-message");
+    if (message && win) {
+      message.style.animation = "glow 1s ease-in-out infinite alternate";
+      message.style.color = "orange";
+    }
+  };
+
+  const handleGuessInput = (e) => {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (wordPhrase.includes(upperCaseGuess)) {
       setCorrectGuess(correctGuess + upperCaseGuess);
@@ -141,8 +149,8 @@ function App() {
       setPoints(prevState => prevState - (wordPhrase.length * Math.random() * 10));
     }
 
-    setcurrentGuess('');
-  }
+    setcurrentGuess("");
+  };
 
   const createCustomWordUrl = (word) => {
     let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
@@ -241,12 +249,12 @@ return (
     <h2>Leaderboard</h2>
     {leaderboardElements}
     {endGameMessage &&
-      <div>
+      <div className="end-game-message">
         {endGameMessage}
         <div>You've earned {Math.floor(points)} points</div>
       </div>}
     <img src={hangmanImage} width="200"></img>
-    {!isPlaying && <div>
+    {!isPlaying && <div >
       <h2>Click button to play hangman</h2>
       <button onClick={startGame}>Start Game</button>
     </div>}
@@ -256,7 +264,7 @@ return (
         <h2>Submit score to leaderboard</h2>
         {!hasSubmitted ?
         <div>
-        <TextField id="outlined-basic" label="Username" variant="outlined" onChange={e => setUsername(e.target.value)} />
+        <TextField id="outlined-basic" label="Username" variant="outlined" style={{ marginBottom: "10px" }} onChange={e => setUsername(e.target.value)}  />
         <Button variant="outlined" onClick={submitScore}>Submit</Button>
         </div>
         :
@@ -265,9 +273,9 @@ return (
 
     {isPlaying && (
       <Box sx={{ width: '200px', display: 'flex', flexDirection: 'column' }}>
-        <label> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
+        <label id="wrong-letters"> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
         <TextField id="outlined-basic" label="Your Guess" variant="outlined" value={currentGuess} onChange={e => setcurrentGuess(e.target.value)} inputProps={{ maxLength: 1 }} />
-        <Button variant="outlined" onClick={handleGuessInput}>Make a guess</Button>
+        <Button variant="outlined" onClick={handleGuessInput} style={{ fontFamily: "Monaco", fontWeight: "bold", marginBottom: "10px" }}>Make a guess</Button>
       </Box>
     )}
 
