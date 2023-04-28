@@ -64,7 +64,7 @@ function App() {
       }
     }
     );
-  })
+  }, [])
   
 
   //figures out if user has lost game
