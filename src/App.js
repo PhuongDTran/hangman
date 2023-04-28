@@ -6,7 +6,9 @@ import "./App.css";
 
 import { returnWord } from './wordList.js'
 
-import { addPlayer, deletePlayer, updatePlayerHighestScore, getAllPlayers } from './playerDal';
+import { addPlayer, deletePlayer, updatePlayerHighestScore, getAllPlayers} from './playerDal';
+
+import { addWord,getWord, getWordUrl, deleteWord } from './wordDal';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -26,6 +28,16 @@ function App() {
   const [username, setUsername] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  let passcode = window.location.pathname.toString();
+
+  while(passcode.includes("/")){
+    passcode = passcode.replace("/","");
+  }
+
+  let url = "";
+  let sessionWord = "";
+  
   //Sets leaderboard
   useEffect(() => {
     getAllPlayers(function (err, data) {
@@ -39,7 +51,7 @@ function App() {
       });
     })
 
-  }, [])
+  }, []);  
 
   //figures out if user has lost game
   useEffect(() => {
@@ -55,11 +67,30 @@ function App() {
       if (!(correctGuess + " ").includes(char)) { Won = false }
     }
     )
-    if (Won) {
+    if (Won && wordPhrase.length != 0) {
       endGame();
       setHasWon(true);
     }
-  });
+  }, [correctGuess]);
+
+  function checkUrl () {
+    console.log(passcode)
+    getWordUrl(passcode, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+
+      if (data.Item) {
+        sessionWord = data.Item.wordshared;
+        console.log(sessionWord);
+      }
+    }
+    );
+  }
+
+  if(passcode !== null){
+    checkUrl();
+  }
 
   const startGame = () => {
     setHasSubmitted(false);
@@ -74,11 +105,15 @@ function App() {
 
     let word = "bug";
 
-    if (sessionStorage.getItem("word")) {
-      word = sessionStorage.getItem('word').toUpperCase();
+    console.log(sessionWord);
+
+    console.log(sessionWord + " " + sessionWord.length);
+
+    if (sessionWord.length > 0) {
+      word = sessionWord.toUpperCase();
+      deleteCustomWordUrl(passcode);
     } else {
       word = returnWord().toLocaleUpperCase();
-      console.log(word); //Logs the word to the console for testing. Remove before going life, as useful for cheating.
     }
     setWordPhrase(word);
   };
@@ -116,6 +151,35 @@ function App() {
 
     setcurrentGuess("");
   };
+
+  const createCustomWordUrl = (word) => {
+    let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
+
+    for (let index = 0; index < 35; index++) {
+        url=url+letters[Math.floor(Math.random() * letters.length)]        
+    }
+
+    let submitObject = {
+      'url': url,
+      'wordshared': word
+    }
+
+    addWord(submitObject, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+      console.log(url);
+    })
+  }
+
+  const deleteCustomWordUrl = (url) => {
+    deleteWord(url , function (err, data) {
+      if(err){
+        console.log(err);
+      }
+      console.log(data, "deleted");
+    }) 
+  }
 
   const submitScore = () => {
     const newPlayer = {
@@ -226,7 +290,7 @@ return (
               }} />)
           } else {
             return (
-              <Box
+              <Box  
                 key={idx}
                 sx={{
                   width: 40,
@@ -241,6 +305,32 @@ return (
           }
         })
       }
+    </div>
+    <div class="form-popup" id="wordForm">
+      <form action="/action_page.php" class="form-container">
+        <h1>Create a word for a Friend</h1>
+
+        <label for="chosenWord"><b>Chosen Word</b></label>
+        <input type="text" placeholder="Type Word" name="chosenWord" id="chosenWord" required></input>
+
+        <label for="url"><b>Your Url</b></label>
+        <input type="text" name="url" id="url" value={"Url will go here"} readOnly></input>
+
+        <button type="button" class="btn" onClick={(()=>{
+          createCustomWordUrl(document.getElementById("chosenWord").value);
+          document.getElementById("url").value = window.location.origin + "/" + url;
+        })}>Create Url</button>
+        <button type="button" class="btn cancel" onClick={(() => {
+          document.getElementById("wordForm").style.display = "none";
+          document.getElementById("queryButton").style.display = "block";
+        })}>Cancel</button>
+      </form>
+    </div>
+    <div class="queryButton" id="queryButton">
+      <button className="btn" onClick={(() => {
+        document.getElementById("wordForm").style.display = "block";
+        document.getElementById("queryButton").style.display = "none";
+      })}>Send Word</button>
     </div>
   </div>
 );
