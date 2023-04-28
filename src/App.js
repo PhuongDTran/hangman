@@ -29,13 +29,12 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  let passcode;
-  if(window.location.pathname !== "/"){
-    //console.log(window.location.pathname);
-    passcode = window.location.pathname.toString().substring(1);
-  } else {
-    passcode = null;
+  let passcode = window.location.pathname.toString();
+
+  while(passcode.includes("/")){
+    passcode = passcode.replace("/","");
   }
+
   let url = "";
   let sessionWord = "";
   
