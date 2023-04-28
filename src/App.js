@@ -16,9 +16,10 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
+  
   const [points, setPoints] = useState(0);
-  const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
-
+  const [hangmanImage, setHangmanImage] = useState(window.location.origin + '/images/hangman_life_6.jpeg');
+  
   const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
 
@@ -68,7 +69,7 @@ function App() {
     setLives(6);
     setWrongGuess('');
     setCorrectGuess('');
-    setHangmanImage(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
+    setHangmanImage(window.location.origin + '/images/hangman_life_6.jpeg');
     setEndGameMessage(null);
 
     let word = "bug";
@@ -101,7 +102,7 @@ function App() {
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
-      setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
+      setHangmanImage(window.location.origin + `/images/hangman_life_${lives - 1}.jpeg`)
       setPoints(prevState => prevState - (wordPhrase.length * Math.random() * 10));
     }
 
