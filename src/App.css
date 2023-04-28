@@ -98,6 +98,30 @@
       text-shadow: 0 0 20px orange, 0 0 30px orange, 0 0 40px orange;
     }
   }
+
+
+.leader-board {
+    position: fixed;
+    top: 10rem;
+    right: 12rem;
+}
+
+.leader-board h2 {
+    font-size: 24px;
+    margin: 0 0 20px;
+    text-align: center;
+    color: rgb(157, 4, 68);
+    font-family: "Monaco", monospace;
+}
+
+.leaderboard-item {
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+  }
+  
  
 .SendWord {
     background-color : green;
