@@ -89,7 +89,6 @@ function App() {
   }, [correctGuess]);
 
   function checkUrl() {
-    console.log(passcode);
     getWordUrl(passcode, function (err, data) {
       if (err) {
         console.log(err);
@@ -97,12 +96,11 @@ function App() {
 
       if (data.Item) {
         sessionWord = data.Item.wordshared;
-        console.log(sessionWord);
       }
     });
   }
 
-  if (passcode !== null) {
+  if (passcode !== '') {
     checkUrl();
   }
 
@@ -118,10 +116,6 @@ function App() {
     setEndGameMessage(null);
 
     let word = "bug";
-
-    console.log(sessionWord);
-
-    console.log(sessionWord + " " + sessionWord.length);
 
     if (sessionWord.length > 0) {
       word = sessionWord.toUpperCase();
@@ -192,7 +186,6 @@ function App() {
       if (err) {
         console.log(err);
       }
-      console.log(url);
     });
   };
 
@@ -323,17 +316,6 @@ return (
       <button onClick={startGame}>Start Game</button>
     </div>}
 
-    {hasWon &&
-      <div>
-        <h2>Submit score to leaderboard</h2>
-        {!hasSubmitted ?
-
-        <div>
-          <h2>Click button to play hangman</h2>
-          <button onClick={startGame}>Start Game</button>
-        </div>
-      )}
-
       {hasWon && (
         <div>
           <h2>Submit score to leaderboard</h2>
@@ -419,8 +401,8 @@ return (
             }
           })}
       </div>
-      <div class="form-popup" id="wordForm">
-        <form action="/action_page.php" class="form-container">
+      <div className="form-popup" id="wordForm">
+        <form action="/action_page.php" className="form-container">
           <h1>Create a word for a Friend</h1>
 
           <label for="chosenWord">
@@ -447,7 +429,7 @@ return (
 
           <button
             type="button"
-            class="btn"
+            className="btn"
             onClick={() => {
               createCustomWordUrl(document.getElementById("chosenWord").value);
               document.getElementById("url").value =
@@ -458,7 +440,7 @@ return (
           </button>
           <button
             type="button"
-            class="btn cancel"
+            className="btn cancel"
             onClick={() => {
               document.getElementById("wordForm").style.display = "none";
               document.getElementById("queryButton").style.display = "block";
@@ -468,7 +450,7 @@ return (
           </button>
         </form>
       </div>
-      <div class="queryButton" id="queryButton">
+      <div className="queryButton" id="queryButton">
         <button
           className="btn"
           onClick={() => {
