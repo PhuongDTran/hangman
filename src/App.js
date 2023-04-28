@@ -16,7 +16,7 @@ function App() {
 
   const [currentGuess, setcurrentGuess] = useState('');
   const [lives, setLives] = useState(6);
-  const [points, setPoints] = useState(100);
+  const [points, setPoints] = useState(0);
   const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
 
   const [hasWon, setHasWon] = useState(false);
@@ -24,7 +24,7 @@ function App() {
 
   const [username, setUsername] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
-
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   //Sets leaderboard
   useEffect(() => {
     getAllPlayers(function (err, data) {
@@ -61,6 +61,7 @@ function App() {
   });
 
   const startGame = () => {
+    setHasSubmitted(false);
     setHasWon(false);
     setIsPlaying(true);
     setPoints(100);
@@ -96,12 +97,12 @@ function App() {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (wordPhrase.includes(upperCaseGuess)) {
       setCorrectGuess(correctGuess + upperCaseGuess);
-      setPoints(prevState => prevState + (prevState / wordPhrase.length));
+      setPoints(prevState => prevState + (wordPhrase.length * Math.random() * 10));
     } else {
       setWrongGuess(wrongGuess + upperCaseGuess);
       setLives(prevState => prevState - 1);
       setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
-      setPoints(prevState => prevState - (prevState / wordPhrase.length));
+      setPoints(prevState => prevState - (wordPhrase.length * Math.random() * 10));
     }
 
     setcurrentGuess('');
@@ -114,10 +115,11 @@ function App() {
     }
 
     let updatedLeaderboard = [...leaderboard];
-    //if leaderboard is less than 10, add a new player
+    //if leaderboard is less than 10 and does not exists, add a new player
     //if player's name exists on leaderboard and player's score is higher than previous, update
-    //if player score is highest than lowest score on the leaderboard, add to DB
-    if (leaderboard.length < 10) {
+    //if player's name exists but did not beat previous score, do nothing
+    //if player score is higher than lowest score on the leaderboard, add to DB
+    if (leaderboard.length < 10 && !leaderboard.find(player => player.playerName === newPlayer.playerName)) {
       addPlayer(newPlayer, function (err, data) {
         if (err) {
           console.log(err);
@@ -136,6 +138,8 @@ function App() {
       const replacePlayerIndex = updatedLeaderboard.findIndex(player => player.playerName === newPlayer.playerName)
       updatedLeaderboard[replacePlayerIndex] = newPlayer;
 
+    } else if (leaderboard.find(player => player.playerName === newPlayer.playerName)) {
+      //Do nothing since didn't beat previous score
     } else if (newPlayer.highestScore > leaderboard[9].highestScore) {
       addPlayer(newPlayer, function (err, data) {
         if (err) {
@@ -157,6 +161,7 @@ function App() {
     setLeaderboard(() => {
       return updatedLeaderboard.sort((a,b) => (a.highestScore < b.highestScore) ? 1 : ((b.highestScore < a.highestScore) ? -1 : 0))
     });
+    setHasSubmitted(true);
 }
 
 const leaderboardElements = leaderboard.map(item => {
@@ -184,8 +189,13 @@ return (
     {hasWon &&
       <div>
         <h2>Submit score to leaderboard</h2>
+        {!hasSubmitted ?
+        <div>
         <TextField id="outlined-basic" label="Username" variant="outlined" onChange={e => setUsername(e.target.value)} />
         <Button variant="outlined" onClick={submitScore}>Submit</Button>
+        </div>
+        :
+        <div>Submission sent!</div>}
       </div>}
 
     {isPlaying && (
