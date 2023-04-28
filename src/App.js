@@ -131,10 +131,10 @@ function App() {
 
     if (lives > 1) {
       setEndGameMessage("You've won!");
-      const message = document.querySelector(".end-game-message");
+      // const message = document.querySelector(".end-game-message");
 
-      message.style.animation = "glow 1s ease-in-out infinite alternate";
-      message.style.color = "orange";
+      // message.style.animation = "glow 1s ease-in-out infinite alternate";
+      // message.style.color = "orange";
     } else {
       setEndGameMessage("You've been hanged...");
     }
