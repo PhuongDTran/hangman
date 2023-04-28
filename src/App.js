@@ -1,31 +1,45 @@
 import { useEffect, useState } from "react";
 
-import { Box, TextField, Button } from '@mui/material';
+import { Box, TextField, Button } from "@mui/material";
 
-import './App.css';
+import "./App.css";
 
 import { returnWord } from './wordList.js'
 
-import { addPlayer, deletePlayer, updatePlayerHighestScore, getAllPlayers } from './playerDal';
+import { addPlayer, deletePlayer, updatePlayerHighestScore, getAllPlayers} from './playerDal';
+
+import { addWord,getWord, getWordUrl, deleteWord } from './wordDal';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [wordPhrase, setWordPhrase] = useState('');
-  const [correctGuess, setCorrectGuess] = useState('');
-  const [wrongGuess, setWrongGuess] = useState('');
+  const [wordPhrase, setWordPhrase] = useState("");
+  const [correctGuess, setCorrectGuess] = useState("");
+  const [wrongGuess, setWrongGuess] = useState("");
 
-  const [currentGuess, setcurrentGuess] = useState('');
+  const [currentGuess, setcurrentGuess] = useState("");
   const [lives, setLives] = useState(6);
-  const [points, setPoints] = useState(100);
-  const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
-  const [gameErrorMessage, setGameErrorMessage] = useState(null);
+  
+   const [gameErrorMessage, setGameErrorMessage] = useState(null);
+  const [points, setPoints] = useState(0);
+  const [hangmanImage, setHangmanImage] = useState(window.location.origin + '/images/hangman_life_6.jpeg');
+
 
   const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
 
   const [username, setUsername] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  let passcode = window.location.pathname.toString();
+
+  while(passcode.includes("/")){
+    passcode = passcode.replace("/","");
+  }
+
+  let url = "";
+  let sessionWord = "";
+  
   //Sets leaderboard
   useEffect(() => {
     getAllPlayers(function (err, data) {
@@ -39,7 +53,7 @@ function App() {
       });
     })
 
-  }, [])
+  }, []);  
 
   //figures out if user has lost game
   useEffect(() => {
@@ -55,45 +69,77 @@ function App() {
       if (!(correctGuess + " ").includes(char)) { Won = false }
     }
     )
-    if (Won) {
+    if (Won && wordPhrase.length != 0) {
       endGame();
       setHasWon(true);
     }
-  });
+  }, [correctGuess]);
+
+  function checkUrl () {
+    console.log(passcode)
+    getWordUrl(passcode, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+
+      if (data.Item) {
+        sessionWord = data.Item.wordshared;
+        console.log(sessionWord);
+      }
+    }
+    );
+  }
+
+  if(passcode !== null){
+    checkUrl();
+  }
 
   const startGame = () => {
+    setHasSubmitted(false);
     setHasWon(false);
     setIsPlaying(true);
     setPoints(100);
     setLives(6);
     setWrongGuess('');
     setCorrectGuess('');
-    setHangmanImage(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
+    setHangmanImage(window.location.origin + '/images/hangman_life_6.jpeg');
     setEndGameMessage(null);
 
     let word = "bug";
 
-    if (sessionStorage.getItem("word")) {
-      word = sessionStorage.getItem('word').toUpperCase();
+    console.log(sessionWord);
+
+    console.log(sessionWord + " " + sessionWord.length);
+
+    if (sessionWord.length > 0) {
+      word = sessionWord.toUpperCase();
+      deleteCustomWordUrl(passcode);
     } else {
       word = returnWord().toLocaleUpperCase();
-      console.log(word); //Logs the word to the console for testing. Remove before going life, as useful for cheating.
     }
     setWordPhrase(word);
-  }
+  };
 
   const endGame = () => {
     setIsPlaying(false);
-    setWordPhrase('');
+    setWordPhrase("");
 
+    let win = false;
     if (lives > 1) {
-      setEndGameMessage("You've won!")
+      setEndGameMessage("You've won!");
+      win = true;
     } else {
-      setEndGameMessage("You've been hanged...")
+      setEndGameMessage("You've been hanged...");
     }
-  }
 
-  const handleGuessInput = e => {
+    const message = document.querySelector(".end-game-message");
+    if (message && win) {
+      message.style.animation = "glow 1s ease-in-out infinite alternate";
+      message.style.color = "orange";
+    }
+  };
+
+  const handleGuessInput = (e) => {
     const upperCaseGuess = currentGuess.toUpperCase();
     if (correctGuess.includes(upperCaseGuess) || wrongGuess.includes(upperCaseGuess)) {
       setGameErrorMessage("You've inputted this letter already!");
@@ -110,7 +156,36 @@ function App() {
       setGameErrorMessage(null);
     }
 
-    setcurrentGuess('');
+    setcurrentGuess("");
+  };
+
+  const createCustomWordUrl = (word) => {
+    let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
+
+    for (let index = 0; index < 35; index++) {
+        url=url+letters[Math.floor(Math.random() * letters.length)]        
+    }
+
+    let submitObject = {
+      'url': url,
+      'wordshared': word
+    }
+
+    addWord(submitObject, function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+      console.log(url);
+    })
+  }
+
+  const deleteCustomWordUrl = (url) => {
+    deleteWord(url , function (err, data) {
+      if(err){
+        console.log(err);
+      }
+      console.log(data, "deleted");
+    }) 
   }
 
   const submitScore = () => {
@@ -120,10 +195,11 @@ function App() {
     }
 
     let updatedLeaderboard = [...leaderboard];
-    //if leaderboard is less than 10, add a new player
+    //if leaderboard is less than 10 and does not exists, add a new player
     //if player's name exists on leaderboard and player's score is higher than previous, update
-    //if player score is highest than lowest score on the leaderboard, add to DB
-    if (leaderboard.length < 10) {
+    //if player's name exists but did not beat previous score, do nothing
+    //if player score is higher than lowest score on the leaderboard, add to DB
+    if (leaderboard.length < 10 && !leaderboard.find(player => player.playerName === newPlayer.playerName)) {
       addPlayer(newPlayer, function (err, data) {
         if (err) {
           console.log(err);
@@ -142,6 +218,8 @@ function App() {
       const replacePlayerIndex = updatedLeaderboard.findIndex(player => player.playerName === newPlayer.playerName)
       updatedLeaderboard[replacePlayerIndex] = newPlayer;
 
+    } else if (leaderboard.find(player => player.playerName === newPlayer.playerName)) {
+      //Do nothing since didn't beat previous score
     } else if (newPlayer.highestScore > leaderboard[9].highestScore) {
       addPlayer(newPlayer, function (err, data) {
         if (err) {
@@ -163,6 +241,7 @@ function App() {
     setLeaderboard(() => {
       return updatedLeaderboard.sort((a,b) => (a.highestScore < b.highestScore) ? 1 : ((b.highestScore < a.highestScore) ? -1 : 0))
     });
+    setHasSubmitted(true);
 }
 
 const leaderboardElements = leaderboard.map(item => {
@@ -177,7 +256,7 @@ return (
     <h2>Leaderboard</h2>
     {leaderboardElements}
     {endGameMessage &&
-      <div>
+      <div className="end-game-message">
         {endGameMessage}
         <div>You've earned {Math.floor(points)} points</div>
       </div>}
@@ -191,15 +270,20 @@ return (
     {hasWon &&
       <div>
         <h2>Submit score to leaderboard</h2>
-        <TextField id="outlined-basic" label="Username" variant="outlined" onChange={e => setUsername(e.target.value)} />
+        {!hasSubmitted ?
+        <div>
+        <TextField id="outlined-basic" label="Username" variant="outlined" style={{ marginBottom: "10px" }} onChange={e => setUsername(e.target.value)}  />
         <Button variant="outlined" onClick={submitScore}>Submit</Button>
+        </div>
+        :
+        <div>Submission sent!</div>}
       </div>}
 
     {isPlaying && (
       <Box sx={{ width: '200px', display: 'flex', flexDirection: 'column' }}>
-        <label> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
+        <label id="wrong-letters"> {`Incorrect guesses: ${wrongGuess.split('').toString()}`}</label>
         <TextField id="outlined-basic" label="Your Guess" variant="outlined" value={currentGuess} onChange={e => setcurrentGuess(e.target.value)} inputProps={{ maxLength: 1 }} />
-        <Button variant="outlined" onClick={handleGuessInput}>Make a guess</Button>
+        <Button variant="outlined" onClick={handleGuessInput} style={{ fontFamily: "Monaco", fontWeight: "bold", marginBottom: "10px" }}>Make a guess</Button>
       </Box>
     )}
 
@@ -214,7 +298,7 @@ return (
               }} />)
           } else {
             return (
-              <Box
+              <Box  
                 key={idx}
                 sx={{
                   width: 40,
@@ -229,6 +313,32 @@ return (
           }
         })
       }
+    </div>
+    <div class="form-popup" id="wordForm">
+      <form action="/action_page.php" class="form-container">
+        <h1>Create a word for a Friend</h1>
+
+        <label for="chosenWord"><b>Chosen Word</b></label>
+        <input type="text" placeholder="Type Word" name="chosenWord" id="chosenWord" required></input>
+
+        <label for="url"><b>Your Url</b></label>
+        <input type="text" name="url" id="url" value={"Url will go here"} readOnly></input>
+
+        <button type="button" class="btn" onClick={(()=>{
+          createCustomWordUrl(document.getElementById("chosenWord").value);
+          document.getElementById("url").value = window.location.origin + "/" + url;
+        })}>Create Url</button>
+        <button type="button" class="btn cancel" onClick={(() => {
+          document.getElementById("wordForm").style.display = "none";
+          document.getElementById("queryButton").style.display = "block";
+        })}>Cancel</button>
+      </form>
+    </div>
+    <div class="queryButton" id="queryButton">
+      <button className="btn" onClick={(() => {
+        document.getElementById("wordForm").style.display = "block";
+        document.getElementById("queryButton").style.display = "none";
+      })}>Send Word</button>
     </div>
   </div>
 );
