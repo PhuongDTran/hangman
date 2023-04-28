@@ -18,6 +18,7 @@ function App() {
   const [lives, setLives] = useState(6);
   const [points, setPoints] = useState(100);
   const [hangmanImage, setHangmanImage] = useState(process.env.PUBLIC_URL + '/images/hangman_life_6.jpeg');
+  const [gameErrorMessage, setGameErrorMessage] = useState(null);
 
   const [hasWon, setHasWon] = useState(false);
   const [endGameMessage, setEndGameMessage] = useState(null);
@@ -94,14 +95,19 @@ function App() {
 
   const handleGuessInput = e => {
     const upperCaseGuess = currentGuess.toUpperCase();
-    if (wordPhrase.includes(upperCaseGuess)) {
-      setCorrectGuess(correctGuess + upperCaseGuess);
-      setPoints(prevState => prevState + (prevState / wordPhrase.length));
+    if (correctGuess.includes(upperCaseGuess) || wrongGuess.includes(upperCaseGuess)) {
+      setGameErrorMessage("You've inputted this letter already!");
     } else {
-      setWrongGuess(wrongGuess + upperCaseGuess);
-      setLives(prevState => prevState - 1);
-      setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
-      setPoints(prevState => prevState - (prevState / wordPhrase.length));
+      if (wordPhrase.includes(upperCaseGuess)) {
+        setCorrectGuess(correctGuess + upperCaseGuess);
+        setPoints(prevState => prevState + (prevState / wordPhrase.length));
+      } else {
+        setWrongGuess(wrongGuess + upperCaseGuess);
+        setLives(prevState => prevState - 1);
+        setHangmanImage(process.env.PUBLIC_URL + `/images/hangman_life_${lives - 1}.jpeg`)
+        setPoints(prevState => prevState - (prevState / wordPhrase.length));
+      }
+      setGameErrorMessage(null);
     }
 
     setcurrentGuess('');
@@ -176,6 +182,7 @@ return (
         <div>You've earned {Math.floor(points)} points</div>
       </div>}
     <img src={hangmanImage} width="200"></img>
+    {gameErrorMessage && <div>{gameErrorMessage}</div>}
     {!isPlaying && <div>
       <h2>Click button to play hangman</h2>
       <button onClick={startGame}>Start Game</button>
